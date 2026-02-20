@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import { Button, Card, Table, Badge, Pagination, Input, Select } from '@/Components/UI';
+import ExportDropdown from '@/Components/ExportDropdown';
 import {
     PlusIcon,
     PencilSquareIcon,
@@ -64,10 +65,17 @@ export default function SedesIndex({ sedes, filters }) {
                         Gestiona las ubicaciones y proyectos de la constructora
                     </p>
                 </div>
-                <Button href={route('sedes.create')}>
-                    <PlusIcon className="h-5 w-5" />
-                    Nueva Sede
-                </Button>
+                <div className="flex gap-2">
+                    <ExportDropdown
+                        excelUrl={route('sedes.export.excel')}
+                        pdfUrl={route('sedes.export.pdf')}
+                        filters={{ tipo, search }}
+                    />
+                    <Button href={route('sedes.create')}>
+                        <PlusIcon className="h-5 w-5" />
+                        Nueva Sede
+                    </Button>
+                </div>
             </div>
 
             {/* Filters */}

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import { Button, Card, Table, Badge, Pagination, Select } from '@/Components/UI';
+import ExportDropdown from '@/Components/ExportDropdown';
 import {
     PlusIcon,
     PencilSquareIcon,
@@ -113,6 +114,11 @@ export default function EquiposIndex({ equipos, sedes, filters }) {
                     </p>
                 </div>
                 <div className="flex gap-2">
+                    <ExportDropdown
+                        excelUrl={route('equipos.export.excel')}
+                        pdfUrl={route('equipos.export.pdf')}
+                        filters={{ tipo, subtipo, estado, sede_id: sedeId, search }}
+                    />
                     <Button href={route('equipos.create', { tipo: tipo || 'computo' })}>
                         <PlusIcon className="h-5 w-5" />
                         Nuevo Equipo

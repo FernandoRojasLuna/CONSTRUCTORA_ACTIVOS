@@ -121,8 +121,15 @@ class Equipo extends Model
             'observaciones' => $datos['observaciones'] ?? null,
         ]);
 
-        // Actualizar sede actual del equipo
-        $this->update(['sede_id' => $nuevaSede->id]);
+        // Actualizar sede actual del equipo y el responsable si se especificó
+        $updateData = ['sede_id' => $nuevaSede->id];
+        
+        // Si hay un responsable que recibe, actualizar el responsable_actual del equipo
+        if (!empty($datos['responsable_recibe'])) {
+            $updateData['responsable_actual'] = $datos['responsable_recibe'];
+        }
+        
+        $this->update($updateData);
 
         return $traslado;
     }

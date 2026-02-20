@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import { Button, Card, Badge, Table, Modal, Select, Input, Textarea } from '@/Components/UI';
+import DocumentosList from '@/Components/DocumentosList';
+import UploadDocumentoModal from '@/Components/UploadDocumentoModal';
 import {
     ArrowLeftIcon,
     PencilSquareIcon,
@@ -15,10 +17,13 @@ import {
     UserIcon,
     ClockIcon,
     ArrowsRightLeftIcon,
+    PlusIcon,
+    PrinterIcon,
 } from '@heroicons/react/24/outline';
 
 export default function EquiposShow({ equipo, sedes }) {
     const [showTrasladoModal, setShowTrasladoModal] = useState(false);
+    const [showDocumentoModal, setShowDocumentoModal] = useState(false);
 
     const trasladoForm = useForm({
         equipo_id: equipo.id,
@@ -158,6 +163,13 @@ export default function EquiposShow({ equipo, sedes }) {
                         </div>
                     </div>
                     <div className="flex flex-wrap gap-2">
+                        <a
+                            href={route('equipos.ficha', equipo.id)}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg border border-gray-300 font-medium text-sm transition-colors"
+                        >
+                            <PrinterIcon className="h-5 w-5" />
+                            Ficha PDF
+                        </a>
                         <Button variant="secondary" onClick={() => setShowTrasladoModal(true)}>
                             <TruckIcon className="h-5 w-5" />
                             Trasladar
@@ -386,30 +398,33 @@ export default function EquiposShow({ equipo, sedes }) {
                     {/* Documentos */}
                     <Card>
                         <Card.Header>
-                            <Card.Title>Documentos</Card.Title>
+                            <div className="flex items-center justify-between">
+                                <Card.Title>Documentos</Card.Title>
+                                <Button
+                                    size="sm"
+                                    onClick={() => setShowDocumentoModal(true)}
+                                >
+                                    <PlusIcon className="h-4 w-4" />
+                                    Subir
+                                </Button>
+                            </div>
                         </Card.Header>
                         <Card.Body>
-                            {equipo.documentos?.length > 0 ? (
-                                <ul className="space-y-2">
-                                    {equipo.documentos.map((doc) => (
-                                        <li
-                                            key={doc.id}
-                                            className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50"
-                                        >
-                                            <DocumentIcon className="h-5 w-5 text-gray-400" />
-                                            <span className="text-sm text-gray-700">{doc.nombre}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            ) : (
-                                <p className="text-sm text-gray-500 text-center py-4">
-                                    No hay documentos adjuntos
-                                </p>
-                            )}
+                            <DocumentosList
+                                documentos={equipo.documentos || []}
+                                onUploadClick={() => setShowDocumentoModal(true)}
+                            />
                         </Card.Body>
                     </Card>
                 </div>
             </div>
+
+            {/* Modal de Upload Documento */}
+            <UploadDocumentoModal
+                isOpen={showDocumentoModal}
+                onClose={() => setShowDocumentoModal(false)}
+                equipoId={equipo.id}
+            />
 
             {/* Modal de Traslado */}
             <Modal

@@ -7,6 +7,15 @@ export default function EquiposEdit({ equipo, sedes }) {
     // Preparar especificaciones iniciales
     const especificaciones = equipo.especificaciones || {};
 
+    // Formatear fecha a yyyy-MM-dd si viene en formato ISO
+    const formatDate = (dateStr) => {
+        if (!dateStr) return '';
+        // Si ya está en formato yyyy-MM-dd, retornarlo tal cual
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+        // Si viene en formato ISO, extraer solo la fecha
+        return dateStr.split('T')[0];
+    };
+
     const form = useForm({
         tipo: equipo.tipo,
         subtipo: equipo.subtipo,
@@ -16,7 +25,7 @@ export default function EquiposEdit({ equipo, sedes }) {
         modelo: equipo.modelo,
         sede_id: equipo.sede_id?.toString() || '',
         estado: equipo.estado,
-        fecha_adquisicion: equipo.fecha_adquisicion || '',
+        fecha_adquisicion: formatDate(equipo.fecha_adquisicion),
         valor_compra: equipo.valor_compra || '',
         responsable_actual: equipo.responsable_actual || '',
         observaciones: equipo.observaciones || '',
@@ -34,7 +43,9 @@ export default function EquiposEdit({ equipo, sedes }) {
         precision: especificaciones.precision || '',
         aumento: especificaciones.aumento || '',
         tipo_gps: especificaciones.tipo || '',
-        accesorios: especificaciones.accesorios ? especificaciones.accesorios.join(', ') : '',
+        accesorios: Array.isArray(especificaciones.accesorios) 
+            ? especificaciones.accesorios.join(', ') 
+            : (especificaciones.accesorios || ''),
     });
 
     const subtiposComputo = [
@@ -94,7 +105,9 @@ export default function EquiposEdit({ equipo, sedes }) {
         form.transform((data) => ({
             ...data,
             especificaciones: Object.keys(specs).length > 0 ? specs : null,
-        })).put(route('equipos.update', equipo.id));
+        }));
+        
+        form.put(route('equipos.update', equipo.id));
     };
 
     const renderEspecificacionesComputo = () => {

@@ -9,6 +9,7 @@ import {
     Table,
     Pagination,
 } from '@/Components/UI';
+import ExportDropdown from '@/Components/ExportDropdown';
 import {
     TruckIcon,
     MagnifyingGlassIcon,
@@ -56,10 +57,17 @@ export default function TrasladosIndex({ traslados, equipos, sedes, filters = {}
                         Historial de movimientos de equipos entre sedes
                     </p>
                 </div>
-                <Button href={route('traslados.create')}>
-                    <PlusIcon className="h-5 w-5" />
-                    Nuevo Traslado
-                </Button>
+                <div className="flex gap-2">
+                    <ExportDropdown
+                        excelUrl={route('traslados.export.excel')}
+                        pdfUrl={route('traslados.export.pdf')}
+                        filters={filters}
+                    />
+                    <Button href={route('traslados.create')}>
+                        <PlusIcon className="h-5 w-5" />
+                        Nuevo Traslado
+                    </Button>
+                </div>
             </div>
 
             {/* Stats Cards */}

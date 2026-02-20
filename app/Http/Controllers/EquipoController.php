@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Equipo;
 use App\Models\Sede;
+use App\Exports\EquiposExport;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class EquipoController extends Controller
 {
@@ -176,5 +179,72 @@ class EquipoController extends Controller
 
         return redirect()->route('equipos.index', ['tipo' => $tipo])
             ->with('success', 'Equipo eliminado exitosamente.');
+    }
+
+    /**
+     * Export equipos to Excel.
+     */
+    public function exportExcel(Request $request)
+    {
+        $filters = $request->only(['tipo', 'subtipo', 'estado', 'sede_id', 'search']);
+        $filename = 'equipos_' . date('Y-m-d_His') . '.xlsx';
+
+        return Excel::download(new EquiposExport($filters), $filename);
+    }
+
+    /**
+     * Export equipos to PDF.
+     */
+    public function exportPdf(Request $request)
+    {
+        $query = Equipo::with('sede');
+
+        if ($request->filled('tipo')) {
+            $query->where('tipo', $request->tipo);
+        }
+        if ($request->filled('subtipo')) {
+            $query->where('subtipo', $request->subtipo);
+        }
+        if ($request->filled('estado')) {
+            $query->where('estado', $request->estado);
+        }
+        if ($request->filled('sede_id')) {
+            $query->where('sede_id', $request->sede_id);
+        }
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('codigo_interno', 'like', "%{$search}%")
+                  ->orWhere('serie', 'like', "%{$search}%")
+                  ->orWhere('marca', 'like', "%{$search}%");
+            });
+        }
+
+        $equipos = $query->orderBy('tipo')->orderBy('codigo_interno')->get();
+
+        $pdf = Pdf::loadView('pdf.equipos', [
+            'equipos' => $equipos,
+            'filters' => $request->only(['tipo', 'subtipo', 'estado', 'sede_id', 'search']),
+            'fecha' => now()->format('d/m/Y H:i'),
+        ]);
+
+        $pdf->setPaper('A4', 'landscape');
+
+        return $pdf->download('equipos_' . date('Y-m-d_His') . '.pdf');
+    }
+
+    /**
+     * Export single equipo ficha técnica to PDF.
+     */
+    public function exportFicha(Equipo $equipo)
+    {
+        $equipo->load(['sede', 'traslados.sedeOrigen', 'traslados.sedeDestino', 'mantenimientos']);
+
+        $pdf = Pdf::loadView('pdf.equipo-ficha', [
+            'equipo' => $equipo,
+            'fecha' => now()->format('d/m/Y H:i'),
+        ]);
+
+        return $pdf->download('ficha_' . $equipo->codigo_interno . '_' . date('Y-m-d') . '.pdf');
     }
 }

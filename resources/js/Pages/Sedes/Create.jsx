@@ -10,6 +10,7 @@ export default function SedesCreate() {
         direccion: '',
         encargado: '',
         telefono: '',
+        email: '',
         tipo: 'proyecto',
         activo: true,
     });
@@ -103,19 +104,29 @@ export default function SedesCreate() {
                             </Card.Header>
                             <Card.Body>
                                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                                    <Input
-                                        label="Encargado"
-                                        value={data.encargado}
-                                        onChange={(e) => setData('encargado', e.target.value)}
-                                        error={errors.encargado}
-                                        placeholder="Nombre del responsable..."
-                                    />
+                                    <div className="sm:col-span-2">
+                                        <Input
+                                            label="Encargado"
+                                            value={data.encargado}
+                                            onChange={(e) => setData('encargado', e.target.value)}
+                                            error={errors.encargado}
+                                            placeholder="Nombre del responsable..."
+                                        />
+                                    </div>
                                     <Input
                                         label="Teléfono"
                                         value={data.telefono}
                                         onChange={(e) => setData('telefono', e.target.value)}
                                         error={errors.telefono}
                                         placeholder="Ej: 999-888-777"
+                                    />
+                                    <Input
+                                        type="email"
+                                        label="Correo Electrónico"
+                                        value={data.email}
+                                        onChange={(e) => setData('email', e.target.value)}
+                                        error={errors.email}
+                                        placeholder="correo@ejemplo.com"
                                     />
                                 </div>
                             </Card.Body>

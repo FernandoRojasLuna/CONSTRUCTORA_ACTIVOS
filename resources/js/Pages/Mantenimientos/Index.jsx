@@ -9,6 +9,7 @@ import {
     Table,
     Pagination,
 } from '@/Components/UI';
+import ExportDropdown from '@/Components/ExportDropdown';
 import {
     WrenchScrewdriverIcon,
     MagnifyingGlassIcon,
@@ -86,10 +87,17 @@ export default function MantenimientosIndex({ mantenimientos, equipos, filters =
                         Gestión de servicios técnicos y calibraciones
                     </p>
                 </div>
-                <Button href={route('mantenimientos.create')}>
-                    <PlusIcon className="h-5 w-5" />
-                    Nuevo Mantenimiento
-                </Button>
+                <div className="flex gap-2">
+                    <ExportDropdown
+                        excelUrl={route('mantenimientos.export.excel')}
+                        pdfUrl={route('mantenimientos.export.pdf')}
+                        filters={filters}
+                    />
+                    <Button href={route('mantenimientos.create')}>
+                        <PlusIcon className="h-5 w-5" />
+                        Nuevo Mantenimiento
+                    </Button>
+                </div>
             </div>
 
             {/* Stats Cards */}

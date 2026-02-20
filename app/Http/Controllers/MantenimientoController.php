@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Equipo;
 use App\Models\Mantenimiento;
+use App\Exports\MantenimientosExport;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class MantenimientoController extends Controller
 {
@@ -187,5 +190,52 @@ class MantenimientoController extends Controller
 
         return redirect()->route('equipos.show', $equipoId)
             ->with('success', 'Mantenimiento eliminado.');
+    }
+
+    /**
+     * Export mantenimientos to Excel.
+     */
+    public function exportExcel(Request $request)
+    {
+        $filters = $request->only(['equipo_id', 'tipo', 'estado', 'fecha_desde', 'fecha_hasta']);
+        $filename = 'mantenimientos_' . date('Y-m-d_His') . '.xlsx';
+
+        return Excel::download(new MantenimientosExport($filters), $filename);
+    }
+
+    /**
+     * Export mantenimientos to PDF.
+     */
+    public function exportPdf(Request $request)
+    {
+        $query = Mantenimiento::with(['equipo.sede', 'usuario']);
+
+        if ($request->filled('equipo_id')) {
+            $query->where('equipo_id', $request->equipo_id);
+        }
+        if ($request->filled('tipo')) {
+            $query->where('tipo', $request->tipo);
+        }
+        if ($request->filled('estado')) {
+            $query->where('estado', $request->estado);
+        }
+        if ($request->filled('fecha_desde')) {
+            $query->whereDate('fecha_inicio', '>=', $request->fecha_desde);
+        }
+        if ($request->filled('fecha_hasta')) {
+            $query->whereDate('fecha_inicio', '<=', $request->fecha_hasta);
+        }
+
+        $mantenimientos = $query->orderBy('fecha_inicio', 'desc')->get();
+
+        $pdf = Pdf::loadView('pdf.mantenimientos', [
+            'mantenimientos' => $mantenimientos,
+            'filters' => $request->only(['equipo_id', 'tipo', 'estado', 'fecha_desde', 'fecha_hasta']),
+            'fecha' => now()->format('d/m/Y H:i'),
+        ]);
+
+        $pdf->setPaper('A4', 'landscape');
+
+        return $pdf->download('mantenimientos_' . date('Y-m-d_His') . '.pdf');
     }
 }

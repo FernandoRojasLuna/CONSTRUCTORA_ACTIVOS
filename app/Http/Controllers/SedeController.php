@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Sede;
+use App\Exports\SedesExport;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class SedeController extends Controller
 {
@@ -60,6 +63,7 @@ class SedeController extends Controller
             'direccion' => 'nullable|string|max:255',
             'encargado' => 'nullable|string|max:255',
             'telefono' => 'nullable|string|max:50',
+            'email' => 'nullable|email|max:255',
             'tipo' => 'required|in:oficina,proyecto,almacen',
             'activo' => 'boolean',
         ]);
@@ -105,6 +109,7 @@ class SedeController extends Controller
             'direccion' => 'nullable|string|max:255',
             'encargado' => 'nullable|string|max:255',
             'telefono' => 'nullable|string|max:50',
+            'email' => 'nullable|email|max:255',
             'tipo' => 'required|in:oficina,proyecto,almacen',
             'activo' => 'boolean',
         ]);
@@ -129,5 +134,45 @@ class SedeController extends Controller
 
         return redirect()->route('sedes.index')
             ->with('success', 'Sede eliminada exitosamente.');
+    }
+
+    /**
+     * Export sedes to Excel.
+     */
+    public function exportExcel(Request $request)
+    {
+        $filters = $request->only(['search', 'tipo']);
+        $filename = 'sedes_' . date('Y-m-d_His') . '.xlsx';
+
+        return Excel::download(new SedesExport($filters), $filename);
+    }
+
+    /**
+     * Export sedes to PDF.
+     */
+    public function exportPdf(Request $request)
+    {
+        $query = Sede::withCount('equipos');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('nombre', 'like', "%{$search}%")
+                  ->orWhere('ciudad', 'like', "%{$search}%");
+            });
+        }
+        if ($request->filled('tipo')) {
+            $query->where('tipo', $request->tipo);
+        }
+
+        $sedes = $query->orderBy('nombre')->get();
+
+        $pdf = Pdf::loadView('pdf.sedes', [
+            'sedes' => $sedes,
+            'filters' => $request->only(['search', 'tipo']),
+            'fecha' => now()->format('d/m/Y H:i'),
+        ]);
+
+        return $pdf->download('sedes_' . date('Y-m-d_His') . '.pdf');
     }
 }

@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Equipo;
 use App\Models\Sede;
 use App\Models\Traslado;
+use App\Exports\TrasladosExport;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class TrasladoController extends Controller
 {
@@ -167,5 +170,52 @@ class TrasladoController extends Controller
     {
         // No permitir eliminar traslados (historial)
         return back()->with('error', 'Los traslados no pueden ser eliminados para mantener el historial.');
+    }
+
+    /**
+     * Export traslados to Excel.
+     */
+    public function exportExcel(Request $request)
+    {
+        $filters = $request->only(['equipo_id', 'sede_origen_id', 'sede_destino_id', 'fecha_desde', 'fecha_hasta', 'estado']);
+        $filename = 'traslados_' . date('Y-m-d_His') . '.xlsx';
+
+        return Excel::download(new TrasladosExport($filters), $filename);
+    }
+
+    /**
+     * Export traslados to PDF.
+     */
+    public function exportPdf(Request $request)
+    {
+        $query = Traslado::with(['equipo', 'sedeOrigen', 'sedeDestino', 'usuario']);
+
+        if ($request->filled('equipo_id')) {
+            $query->where('equipo_id', $request->equipo_id);
+        }
+        if ($request->filled('sede_origen_id')) {
+            $query->where('sede_origen_id', $request->sede_origen_id);
+        }
+        if ($request->filled('sede_destino_id')) {
+            $query->where('sede_destino_id', $request->sede_destino_id);
+        }
+        if ($request->filled('fecha_desde')) {
+            $query->whereDate('fecha_traslado', '>=', $request->fecha_desde);
+        }
+        if ($request->filled('fecha_hasta')) {
+            $query->whereDate('fecha_traslado', '<=', $request->fecha_hasta);
+        }
+
+        $traslados = $query->orderBy('fecha_traslado', 'desc')->get();
+
+        $pdf = Pdf::loadView('pdf.traslados', [
+            'traslados' => $traslados,
+            'filters' => $request->only(['equipo_id', 'sede_origen_id', 'sede_destino_id', 'fecha_desde', 'fecha_hasta']),
+            'fecha' => now()->format('d/m/Y H:i'),
+        ]);
+
+        $pdf->setPaper('A4', 'landscape');
+
+        return $pdf->download('traslados_' . date('Y-m-d_His') . '.pdf');
     }
 }

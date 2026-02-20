@@ -13,6 +13,7 @@ class Sede extends Model
         'direccion',
         'encargado',
         'telefono',
+        'email',
         'tipo',
         'activo',
     ];

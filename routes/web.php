@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DocumentoController;
 use App\Http\Controllers\EquipoController;
 use App\Http\Controllers\MantenimientoController;
 use App\Http\Controllers\ProfileController;
@@ -26,15 +27,32 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Gestión de Sedes
     Route::resource('sedes', SedeController::class);
+    Route::get('sedes-export/excel', [SedeController::class, 'exportExcel'])->name('sedes.export.excel');
+    Route::get('sedes-export/pdf', [SedeController::class, 'exportPdf'])->name('sedes.export.pdf');
 
     // Gestión de Equipos
     Route::resource('equipos', EquipoController::class);
+    Route::get('equipos-export/excel', [EquipoController::class, 'exportExcel'])->name('equipos.export.excel');
+    Route::get('equipos-export/pdf', [EquipoController::class, 'exportPdf'])->name('equipos.export.pdf');
+    Route::get('equipos/{equipo}/ficha', [EquipoController::class, 'exportFicha'])->name('equipos.ficha');
 
     // Gestión de Traslados
     Route::resource('traslados', TrasladoController::class);
+    Route::get('traslados-export/excel', [TrasladoController::class, 'exportExcel'])->name('traslados.export.excel');
+    Route::get('traslados-export/pdf', [TrasladoController::class, 'exportPdf'])->name('traslados.export.pdf');
 
     // Gestión de Mantenimientos
     Route::resource('mantenimientos', MantenimientoController::class);
+    Route::get('mantenimientos-export/excel', [MantenimientoController::class, 'exportExcel'])->name('mantenimientos.export.excel');
+    Route::get('mantenimientos-export/pdf', [MantenimientoController::class, 'exportPdf'])->name('mantenimientos.export.pdf');
+
+    // Gestión de Documentos
+    Route::post('documentos', [DocumentoController::class, 'store'])->name('documentos.store');
+    Route::get('documentos/{documento}', [DocumentoController::class, 'show'])->name('documentos.show');
+    Route::get('documentos/{documento}/download', [DocumentoController::class, 'download'])->name('documentos.download');
+    Route::delete('documentos/{documento}', [DocumentoController::class, 'destroy'])->name('documentos.destroy');
+    Route::get('documentos-proximos-vencer', [DocumentoController::class, 'proximosVencer'])->name('documentos.proximos-vencer');
+    Route::get('documentos-vencidos', [DocumentoController::class, 'vencidos'])->name('documentos.vencidos');
 });
 
 // Perfil de usuario
