@@ -214,7 +214,11 @@ class TrasladoController extends Controller
             'fecha' => now()->format('d/m/Y H:i'),
         ]);
 
-        $pdf->setPaper('A4', 'landscape');
+        $pdf->setPaper('A4', 'landscape')
+            ->setOption('margin-top', 20)
+            ->setOption('margin-bottom', 20)
+            ->setOption('margin-left', 15)
+            ->setOption('margin-right', 15);
 
         return $pdf->download('traslados_' . date('Y-m-d_His') . '.pdf');
     }

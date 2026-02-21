@@ -397,9 +397,8 @@ export default function EquiposShow({ equipo, sedes }) {
 
                     {/* Documentos */}
                     <Card>
-                        <Card.Header>
-                            <div className="flex items-center justify-between">
-                                <Card.Title>Documentos</Card.Title>
+                        <Card.Header
+                            actions={
                                 <Button
                                     size="sm"
                                     onClick={() => setShowDocumentoModal(true)}
@@ -407,7 +406,9 @@ export default function EquiposShow({ equipo, sedes }) {
                                     <PlusIcon className="h-4 w-4" />
                                     Subir
                                 </Button>
-                            </div>
+                            }
+                        >
+                            <Card.Title>Documentos</Card.Title>
                         </Card.Header>
                         <Card.Body>
                             <DocumentosList

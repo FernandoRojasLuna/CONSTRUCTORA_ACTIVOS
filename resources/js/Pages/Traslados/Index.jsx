@@ -118,8 +118,10 @@ export default function TrasladosIndex({ traslados, equipos, sedes, filters = {}
                             <ArrowsRightLeftIcon className="h-6 w-6 text-white" />
                         </div>
                         <div>
-                            <p className="text-sm font-medium text-purple-600">Equipos Trasladados</p>
-                            <p className="text-2xl font-bold text-purple-900">{equipos.length}</p>
+                            <p className="text-sm font-medium text-purple-600">Equipos Únicos</p>
+                            <p className="text-2xl font-bold text-purple-900">
+                                {new Set(traslados.data?.map(t => t.equipo_id)).size || 0}
+                            </p>
                         </div>
                     </div>
                 </Card>

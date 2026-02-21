@@ -228,7 +228,11 @@ class EquipoController extends Controller
             'fecha' => now()->format('d/m/Y H:i'),
         ]);
 
-        $pdf->setPaper('A4', 'landscape');
+        $pdf->setPaper('A4', 'landscape')
+            ->setOption('margin-top', 20)
+            ->setOption('margin-bottom', 20)
+            ->setOption('margin-left', 15)
+            ->setOption('margin-right', 15);
 
         return $pdf->download('equipos_' . date('Y-m-d_His') . '.pdf');
     }
@@ -244,6 +248,11 @@ class EquipoController extends Controller
             'equipo' => $equipo,
             'fecha' => now()->format('d/m/Y H:i'),
         ]);
+
+        $pdf->setOption('margin-top', 20)
+            ->setOption('margin-bottom', 20)
+            ->setOption('margin-left', 15)
+            ->setOption('margin-right', 15);
 
         return $pdf->download('ficha_' . $equipo->codigo_interno . '_' . date('Y-m-d') . '.pdf');
     }

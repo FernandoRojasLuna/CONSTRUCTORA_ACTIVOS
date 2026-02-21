@@ -7,6 +7,7 @@ use App\Http\Controllers\MantenimientoController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SedeController;
 use App\Http\Controllers\TrasladoController;
+use App\Http\Controllers\UserController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -53,6 +54,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('documentos/{documento}', [DocumentoController::class, 'destroy'])->name('documentos.destroy');
     Route::get('documentos-proximos-vencer', [DocumentoController::class, 'proximosVencer'])->name('documentos.proximos-vencer');
     Route::get('documentos-vencidos', [DocumentoController::class, 'vencidos'])->name('documentos.vencidos');
+
+    // Gestión de Usuarios
+    Route::resource('users', UserController::class)->except(['show']);
 });
 
 // Perfil de usuario

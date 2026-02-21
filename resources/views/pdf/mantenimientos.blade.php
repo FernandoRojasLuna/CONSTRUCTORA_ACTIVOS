@@ -5,6 +5,9 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Listado de Mantenimientos</title>
     <style>
+        @page {
+            margin: 0;
+        }
         * {
             margin: 0;
             padding: 0;
@@ -14,6 +17,7 @@
             font-family: 'DejaVu Sans', sans-serif;
             font-size: 10px;
             color: #333;
+            padding: 20mm 15mm;
         }
         .header {
             text-align: center;

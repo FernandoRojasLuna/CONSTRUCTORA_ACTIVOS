@@ -5,6 +5,9 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Ficha Técnica - {{ $equipo->codigo_interno }}</title>
     <style>
+        @page {
+            margin: 0;
+        }
         * {
             margin: 0;
             padding: 0;
@@ -14,7 +17,7 @@
             font-family: 'DejaVu Sans', sans-serif;
             font-size: 11px;
             color: #333;
-            padding: 20px;
+            padding: 20mm 15mm;
         }
         .header {
             text-align: center;

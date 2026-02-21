@@ -1,12 +1,9 @@
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
 import { Transition } from '@headlessui/react';
 import { useForm } from '@inertiajs/react';
 import { useRef } from 'react';
+import { LockClosedIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 
-export default function UpdatePasswordForm({ className = '' }) {
+export default function UpdatePasswordForm() {
     const passwordInput = useRef();
     const currentPasswordInput = useRef();
 
@@ -45,98 +42,110 @@ export default function UpdatePasswordForm({ className = '' }) {
     };
 
     return (
-        <section className={className}>
-            <header>
-                <h2 className="text-lg font-medium text-gray-900">
-                    Update Password
-                </h2>
-
-                <p className="mt-1 text-sm text-gray-600">
-                    Ensure your account is using a long, random password to stay
-                    secure.
-                </p>
-            </header>
-
-            <form onSubmit={updatePassword} className="mt-6 space-y-6">
-                <div>
-                    <InputLabel
-                        htmlFor="current_password"
-                        value="Current Password"
-                    />
-
-                    <TextInput
+        <form onSubmit={updatePassword} className="space-y-5">
+            <div>
+                <label htmlFor="current_password" className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Contraseña Actual
+                </label>
+                <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <LockClosedIcon className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
                         id="current_password"
                         ref={currentPasswordInput}
                         value={data.current_password}
-                        onChange={(e) =>
-                            setData('current_password', e.target.value)
-                        }
+                        onChange={(e) => setData('current_password', e.target.value)}
                         type="password"
-                        className="mt-1 block w-full"
                         autoComplete="current-password"
-                    />
-
-                    <InputError
-                        message={errors.current_password}
-                        className="mt-2"
+                        className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors"
+                        placeholder="••••••••"
                     />
                 </div>
+                {errors.current_password && (
+                    <p className="mt-1.5 text-sm text-red-600">{errors.current_password}</p>
+                )}
+            </div>
 
-                <div>
-                    <InputLabel htmlFor="password" value="New Password" />
-
-                    <TextInput
+            <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Nueva Contraseña
+                </label>
+                <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <LockClosedIcon className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
                         id="password"
                         ref={passwordInput}
                         value={data.password}
                         onChange={(e) => setData('password', e.target.value)}
                         type="password"
-                        className="mt-1 block w-full"
                         autoComplete="new-password"
+                        className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors"
+                        placeholder="••••••••"
                     />
-
-                    <InputError message={errors.password} className="mt-2" />
                 </div>
+                {errors.password && (
+                    <p className="mt-1.5 text-sm text-red-600">{errors.password}</p>
+                )}
+            </div>
 
-                <div>
-                    <InputLabel
-                        htmlFor="password_confirmation"
-                        value="Confirm Password"
-                    />
-
-                    <TextInput
+            <div>
+                <label htmlFor="password_confirmation" className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Confirmar Nueva Contraseña
+                </label>
+                <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <LockClosedIcon className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
                         id="password_confirmation"
                         value={data.password_confirmation}
-                        onChange={(e) =>
-                            setData('password_confirmation', e.target.value)
-                        }
+                        onChange={(e) => setData('password_confirmation', e.target.value)}
                         type="password"
-                        className="mt-1 block w-full"
                         autoComplete="new-password"
-                    />
-
-                    <InputError
-                        message={errors.password_confirmation}
-                        className="mt-2"
+                        className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors"
+                        placeholder="••••••••"
                     />
                 </div>
+                {errors.password_confirmation && (
+                    <p className="mt-1.5 text-sm text-red-600">{errors.password_confirmation}</p>
+                )}
+            </div>
 
-                <div className="flex items-center gap-4">
-                    <PrimaryButton disabled={processing}>Save</PrimaryButton>
+            <div className="flex items-center gap-4 pt-2">
+                <button
+                    type="submit"
+                    disabled={processing}
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-amber-600 text-white text-sm font-semibold rounded-lg hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                    {processing ? (
+                        <>
+                            <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                            </svg>
+                            Actualizando...
+                        </>
+                    ) : (
+                        'Actualizar Contraseña'
+                    )}
+                </button>
 
-                    <Transition
-                        show={recentlySuccessful}
-                        enter="transition ease-in-out"
-                        enterFrom="opacity-0"
-                        leave="transition ease-in-out"
-                        leaveTo="opacity-0"
-                    >
-                        <p className="text-sm text-gray-600">
-                            Saved.
-                        </p>
-                    </Transition>
-                </div>
-            </form>
-        </section>
+                <Transition
+                    show={recentlySuccessful}
+                    enter="transition ease-in-out duration-300"
+                    enterFrom="opacity-0"
+                    leave="transition ease-in-out duration-300"
+                    leaveTo="opacity-0"
+                >
+                    <span className="inline-flex items-center gap-1.5 text-sm text-green-600">
+                        <CheckCircleIcon className="h-5 w-5" />
+                        Contraseña actualizada
+                    </span>
+                </Transition>
+            </div>
+        </form>
     );
 }
