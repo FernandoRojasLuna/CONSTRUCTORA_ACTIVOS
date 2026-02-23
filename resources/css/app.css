@@ -1,3 +1,198 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ===========================================
+   ESTILOS DE IMPRESIÓN - Documentos Formales
+   =========================================== */
+
+/* Configuración de página - Quita encabezados y pies del navegador */
+@page {
+    size: A4;
+    margin: 15mm 15mm 15mm 15mm;
+    /* Esto elimina los headers y footers del navegador */
+}
+
+@media print {
+    /* Eliminar headers y footers del navegador */
+    @page {
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+    
+    /* Ocultar elementos no necesarios en impresión */
+    .no-print,
+    nav,
+    aside,
+    header,
+    footer,
+    button,
+    .sidebar,
+    [data-no-print] {
+        display: none !important;
+    }
+
+    /* Mostrar elementos solo para impresión */
+    .print-only {
+        display: block !important;
+    }
+
+    /* Reset de colores para impresión */
+    body {
+        background: white !important;
+        color: black !important;
+        font-size: 12pt !important;
+        line-height: 1.5 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Eliminar márgenes del html y body */
+    html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Contenedor principal de impresión */
+    .print-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 15mm !important;
+        background: white !important;
+    }
+
+    /* Encabezado del documento */
+    .print-header {
+        text-align: center;
+        border-bottom: 2px solid #333;
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+    }
+
+    .print-header h1 {
+        font-size: 18pt !important;
+        font-weight: bold !important;
+        margin: 0 !important;
+    }
+
+    .print-header p {
+        font-size: 10pt !important;
+        color: #666 !important;
+        margin: 5px 0 0 0 !important;
+    }
+
+    /* Sección de firmas - Centrada y proporcionada */
+    .print-signatures {
+        display: block !important;
+        margin-top: 80px !important;
+        padding-top: 20px !important;
+        page-break-inside: avoid !important;
+        width: 100% !important;
+    }
+
+    .print-signatures-container {
+        display: flex !important;
+        justify-content: space-around !important;
+        align-items: flex-start !important;
+        width: 100% !important;
+        gap: 40px !important;
+    }
+
+    .print-signature-box {
+        flex: 1 !important;
+        max-width: 250px !important;
+        text-align: center !important;
+    }
+
+    .print-signature-line {
+        border-top: 1px solid #333 !important;
+        margin-top: 70px !important;
+        padding-top: 12px !important;
+    }
+
+    .print-signature-name {
+        font-weight: bold !important;
+        font-size: 11pt !important;
+        margin-bottom: 5px !important;
+        color: #000 !important;
+    }
+
+    .print-signature-role {
+        font-size: 9pt !important;
+        color: #555 !important;
+        font-weight: 500 !important;
+    }
+
+    .print-signature-sede {
+        font-size: 8pt !important;
+        color: #777 !important;
+        margin-top: 3px !important;
+    }
+
+    /* Tabla de información */
+    .print-info-table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        margin: 15px 0 !important;
+    }
+
+    .print-info-table th,
+    .print-info-table td {
+        border: 1px solid #999 !important;
+        padding: 8px 12px !important;
+        text-align: left !important;
+        font-size: 10pt !important;
+        background-color: white !important;
+    }
+
+    .print-info-table th {
+        font-weight: bold !important;
+        width: 30% !important;
+        background-color: white !important;
+    }
+
+    /* Evitar cortes de página en secciones importantes */
+    .print-section {
+        page-break-inside: avoid !important;
+        margin-bottom: 20px !important;
+    }
+
+    .print-section-title {
+        font-size: 12pt !important;
+        font-weight: bold !important;
+        border-bottom: 1px solid #ccc !important;
+        padding-bottom: 5px !important;
+        margin-bottom: 10px !important;
+    }
+
+    /* Contenedor de firmas y pie de página - Posicionado abajo */
+    .print-bottom-section {
+        position: fixed !important;
+        bottom: 15mm !important;
+        left: 15mm !important;
+        right: 15mm !important;
+        background: white !important;
+    }
+
+    /* Pie de página del documento (personalizado, no del navegador) */
+    .print-footer {
+        text-align: center;
+        font-size: 8pt !important;
+        color: #666 !important;
+        border-top: 1px solid #ddd;
+        padding-top: 10px;
+        margin-top: 20px;
+    }
+}
+
+/* Clase para ocultar en pantalla y mostrar solo al imprimir */
+.print-only {
+    display: none;
+}
+
+@media print {
+    .print-only {
+        display: block !important;
+    }
+}

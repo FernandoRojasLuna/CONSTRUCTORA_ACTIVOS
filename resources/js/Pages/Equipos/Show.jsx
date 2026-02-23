@@ -19,11 +19,13 @@ import {
     ArrowsRightLeftIcon,
     PlusIcon,
     PrinterIcon,
+    PhotoIcon,
 } from '@heroicons/react/24/outline';
 
 export default function EquiposShow({ equipo, sedes }) {
     const [showTrasladoModal, setShowTrasladoModal] = useState(false);
     const [showDocumentoModal, setShowDocumentoModal] = useState(false);
+    const [imagenSeleccionada, setImagenSeleccionada] = useState(null);
 
     const trasladoForm = useForm({
         equipo_id: equipo.id,
@@ -215,6 +217,35 @@ export default function EquiposShow({ equipo, sedes }) {
                             </Button>
                         </div>
                     </Card>
+
+                    {/* Galería de Imágenes */}
+                    {equipo.imagenes && equipo.imagenes.length > 0 && (
+                        <Card>
+                            <Card.Header>
+                                <Card.Title>Imágenes del Equipo</Card.Title>
+                            </Card.Header>
+                            <Card.Body>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                    {equipo.imagenes.map((imagen, index) => (
+                                        <div
+                                            key={index}
+                                            className="relative group cursor-pointer"
+                                            onClick={() => setImagenSeleccionada(`/storage/${imagen}`)}
+                                        >
+                                            <img
+                                                src={`/storage/${imagen}`}
+                                                alt={`${equipo.codigo_interno} - Imagen ${index + 1}`}
+                                                className="w-full h-32 object-cover rounded-lg border border-gray-200 hover:border-amber-400 transition-colors"
+                                            />
+                                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-all flex items-center justify-center">
+                                                <PhotoIcon className="h-8 w-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </Card.Body>
+                        </Card>
+                    )}
 
                     {/* Especificaciones */}
                     {renderEspecificaciones()}
@@ -503,6 +534,29 @@ export default function EquiposShow({ equipo, sedes }) {
                     </Modal.Footer>
                 </form>
             </Modal>
+
+            {/* Modal de Imagen Ampliada */}
+            {imagenSeleccionada && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 p-4"
+                    onClick={() => setImagenSeleccionada(null)}
+                >
+                    <div className="relative max-w-4xl max-h-[90vh]">
+                        <button
+                            onClick={() => setImagenSeleccionada(null)}
+                            className="absolute -top-10 right-0 text-white hover:text-gray-300 text-sm flex items-center gap-1"
+                        >
+                            Cerrar ✕
+                        </button>
+                        <img
+                            src={imagenSeleccionada}
+                            alt={`${equipo.codigo_interno}`}
+                            className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
+                            onClick={(e) => e.stopPropagation()}
+                        />
+                    </div>
+                </div>
+            )}
         </AppLayout>
     );
 }

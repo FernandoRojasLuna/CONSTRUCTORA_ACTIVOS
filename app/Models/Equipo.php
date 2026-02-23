@@ -21,14 +21,42 @@ class Equipo extends Model
         'valor_compra',
         'responsable_actual',
         'especificaciones',
+        'imagenes',
         'observaciones',
     ];
 
     protected $casts = [
         'especificaciones' => 'array',
+        'imagenes' => 'array',
         'fecha_adquisicion' => 'date',
         'valor_compra' => 'decimal:2',
     ];
+
+    /**
+     * Obtener las URLs completas de las imágenes
+     */
+    public function getImagenesUrlsAttribute(): array
+    {
+        if (empty($this->imagenes)) {
+            return [];
+        }
+
+        return array_map(function ($imagen) {
+            return asset('storage/' . $imagen);
+        }, $this->imagenes);
+    }
+
+    /**
+     * Obtener la imagen principal (primera imagen)
+     */
+    public function getImagenPrincipalAttribute(): ?string
+    {
+        if (empty($this->imagenes)) {
+            return null;
+        }
+
+        return asset('storage/' . $this->imagenes[0]);
+    }
 
     /**
      * Sede donde está actualmente el equipo

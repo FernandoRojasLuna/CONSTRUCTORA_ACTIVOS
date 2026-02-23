@@ -1,13 +1,15 @@
-import { useState } from 'react';
-import { Head, useForm, Link } from '@inertiajs/react';
+import { useState, useRef } from 'react';
+import { Head, useForm, Link, router } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import { Button, Card, Input, Select, Textarea } from '@/Components/UI';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, PhotoIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 export default function EquiposCreate({ sedes, tipo: initialTipo }) {
     const [tipo, setTipo] = useState(initialTipo || 'computo');
+    const [imagenPreviews, setImagenPreviews] = useState([]);
+    const fileInputRef = useRef(null);
 
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, progress } = useForm({
         sede_id: '',
         tipo: initialTipo || 'computo',
         subtipo: '',
@@ -21,6 +23,7 @@ export default function EquiposCreate({ sedes, tipo: initialTipo }) {
         responsable_actual: '',
         especificaciones: {},
         observaciones: '',
+        imagenes: [],
     });
 
     // Especificaciones dinámicas según el tipo
@@ -73,9 +76,64 @@ export default function EquiposCreate({ sedes, tipo: initialTipo }) {
         setData('especificaciones', filteredSpecs);
     };
 
+    // Manejar selección de imágenes
+    const handleImageChange = (e) => {
+        const files = Array.from(e.target.files);
+        const totalImages = data.imagenes.length + files.length;
+
+        if (totalImages > 5) {
+            alert('Solo puedes subir un máximo de 5 imágenes.');
+            return;
+        }
+
+        // Validar tipos de archivo
+        const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+        const invalidFiles = files.filter(file => !validTypes.includes(file.type));
+        
+        if (invalidFiles.length > 0) {
+            alert('Solo se permiten imágenes en formato JPG, PNG o WebP.');
+            return;
+        }
+
+        // Validar tamaño (máx 2MB)
+        const oversizedFiles = files.filter(file => file.size > 2 * 1024 * 1024);
+        if (oversizedFiles.length > 0) {
+            alert('Cada imagen debe ser menor a 2MB.');
+            return;
+        }
+
+        // Agregar nuevas imágenes
+        const newImagenes = [...data.imagenes, ...files];
+        setData('imagenes', newImagenes);
+
+        // Generar previews
+        files.forEach(file => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagenPreviews(prev => [...prev, reader.result]);
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Limpiar el input
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
+
+    // Eliminar imagen
+    const handleRemoveImage = (index) => {
+        const newImagenes = data.imagenes.filter((_, i) => i !== index);
+        const newPreviews = imagenPreviews.filter((_, i) => i !== index);
+        setData('imagenes', newImagenes);
+        setImagenPreviews(newPreviews);
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route('equipos.store'));
+        post(route('equipos.store'), {
+            forceFormData: true, // Importante para subir archivos
+        });
     };
 
     const renderSpecsFields = () => {
@@ -423,6 +481,80 @@ export default function EquiposCreate({ sedes, tipo: initialTipo }) {
                                             rows={3}
                                         />
                                     </div>
+                                </div>
+                            </Card.Body>
+                        </Card>
+
+                        {/* Imágenes del Equipo */}
+                        <Card>
+                            <Card.Header>
+                                <Card.Title>Imágenes del Equipo</Card.Title>
+                                <Card.Description>
+                                    Sube hasta 5 fotos del equipo (JPG, PNG o WebP, máx. 2MB cada una)
+                                </Card.Description>
+                            </Card.Header>
+                            <Card.Body>
+                                <div className="space-y-4">
+                                    {/* Preview de imágenes */}
+                                    {imagenPreviews.length > 0 && (
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                                            {imagenPreviews.map((preview, index) => (
+                                                <div key={index} className="relative group">
+                                                    <img
+                                                        src={preview}
+                                                        alt={`Preview ${index + 1}`}
+                                                        className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleRemoveImage(index)}
+                                                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    >
+                                                        <XMarkIcon className="h-4 w-4" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* Botón para agregar imágenes */}
+                                    {data.imagenes.length < 5 && (
+                                        <div
+                                            onClick={() => fileInputRef.current?.click()}
+                                            className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-amber-400 hover:bg-amber-50 transition-colors"
+                                        >
+                                            <PhotoIcon className="h-10 w-10 text-gray-400 mx-auto mb-2" />
+                                            <p className="text-sm text-gray-600">
+                                                Haz clic para seleccionar imágenes
+                                            </p>
+                                            <p className="text-xs text-gray-400 mt-1">
+                                                {5 - data.imagenes.length} imagen(es) restante(s)
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept="image/jpeg,image/png,image/jpg,image/webp"
+                                        multiple
+                                        onChange={handleImageChange}
+                                        className="hidden"
+                                    />
+
+                                    {errors.imagenes && (
+                                        <p className="text-sm text-red-600">{errors.imagenes}</p>
+                                    )}
+
+                                    {/* Barra de progreso */}
+                                    {progress && (
+                                        <div className="w-full bg-gray-200 rounded-full h-2">
+                                            <div
+                                                className="bg-amber-500 h-2 rounded-full transition-all"
+                                                style={{ width: `${progress.percentage}%` }}
+                                            />
+                                        </div>
+                                    )}
                                 </div>
                             </Card.Body>
                         </Card>

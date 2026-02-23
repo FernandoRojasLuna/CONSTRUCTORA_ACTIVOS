@@ -16,12 +16,27 @@ import {
 } from '@heroicons/react/24/outline';
 
 export default function TrasladosShow({ traslado }) {
+    // Función para imprimir sin headers/footers del navegador
+    const handlePrint = () => {
+        window.print();
+    };
+
     return (
         <AppLayout>
-            <Head title={`Traslado #${traslado.id}`} />
+            <Head title={`Traslado #${traslado.id}`}>
+                {/* Estilos de impresión para quitar headers y footers del navegador */}
+                <style>{`
+                    @media print {
+                        @page {
+                            size: A4;
+                            margin: 20mm;
+                        }
+                    }
+                `}</style>
+            </Head>
 
-            {/* Header */}
-            <div className="mb-6">
+            {/* Header - Se oculta al imprimir */}
+            <div className="mb-6 no-print">
                 <Link
                     href={route('traslados.index')}
                     className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-4"
@@ -49,7 +64,7 @@ export default function TrasladosShow({ traslado }) {
                         </div>
                     </div>
                     <div className="flex gap-2">
-                        <Button variant="secondary" onClick={() => window.print()}>
+                        <Button variant="secondary" onClick={handlePrint}>
                             <PrinterIcon className="h-5 w-5" />
                             Imprimir
                         </Button>
@@ -63,7 +78,7 @@ export default function TrasladosShow({ traslado }) {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 no-print">
                 {/* Main Content */}
                 <div className="lg:col-span-2 space-y-6">
                     {/* Visual de Traslado */}
@@ -269,7 +284,7 @@ export default function TrasladosShow({ traslado }) {
                     </Card>
 
                     {/* Acciones Rápidas */}
-                    <Card>
+                    <Card className="no-print">
                         <Card.Header>
                             <Card.Title>Acciones</Card.Title>
                         </Card.Header>
@@ -293,6 +308,136 @@ export default function TrasladosShow({ traslado }) {
                             </div>
                         </Card.Body>
                     </Card>
+                </div>
+            </div>
+
+            {/* ==========================================
+                SECCIÓN DE IMPRESIÓN - Documento Formal
+                ========================================== */}
+            <div className="print-only mt-8">
+                {/* Encabezado formal del documento */}
+                <div className="print-header text-center border-b-2 border-gray-800 pb-4 mb-6">
+                    <h1 className="text-xl font-bold uppercase tracking-wide">
+                        Acta de Traslado de Equipo
+                    </h1>
+                    <p className="text-sm text-gray-600 mt-1">
+                        Documento N°: TRS-{traslado.id.toString().padStart(4, '0')}
+                    </p>
+                    
+                </div>
+
+                {/* Información del Equipo */}
+                <div className="print-section mb-6">
+                    <h2 className="print-section-title text-sm font-bold border-b border-gray-400 pb-1 mb-3">
+                        INFORMACIÓN DEL EQUIPO
+                    </h2>
+                    <table className="print-info-table w-full border-collapse text-sm">
+                        <tbody>
+                            <tr>
+                                <th className="border border-gray-400 px-3 py-2 text-left w-1/3 font-semibold">Código Interno</th>
+                                <td className="border border-gray-400 px-3 py-2">{traslado.equipo?.codigo_interno}</td>
+                            </tr>
+                            <tr>
+                                <th className="border border-gray-400 px-3 py-2 text-left font-semibold">Tipo</th>
+                                <td className="border border-gray-400 px-3 py-2">
+                                    {traslado.equipo?.tipo === 'computo' ? 'Equipo de Cómputo' : 'Equipo de Topografía'}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th className="border border-gray-400 px-3 py-2 text-left font-semibold">Marca / Modelo</th>
+                                <td className="border border-gray-400 px-3 py-2">
+                                    {traslado.equipo?.marca} {traslado.equipo?.modelo}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th className="border border-gray-400 px-3 py-2 text-left font-semibold">N° de Serie</th>
+                                <td className="border border-gray-400 px-3 py-2">{traslado.equipo?.serie}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* Información del Traslado */}
+                <div className="print-section mb-6">
+                    <h2 className="print-section-title text-sm font-bold border-b border-gray-400 pb-1 mb-3">
+                        DETALLE DEL TRASLADO
+                    </h2>
+                    <table className="print-info-table w-full border-collapse text-sm">
+                        <tbody>
+                            <tr>
+                                <th className="border border-gray-400 px-3 py-2 text-left w-1/3 font-semibold">Sede de Origen</th>
+                                <td className="border border-gray-400 px-3 py-2">
+                                    {traslado.sede_origen?.nombre} - {traslado.sede_origen?.ciudad}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th className="border border-gray-400 px-3 py-2 text-left font-semibold">Sede de Destino</th>
+                                <td className="border border-gray-400 px-3 py-2">
+                                    {traslado.sede_destino?.nombre} - {traslado.sede_destino?.ciudad}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th className="border border-gray-400 px-3 py-2 text-left font-semibold">Motivo</th>
+                                <td className="border border-gray-400 px-3 py-2">{traslado.motivo}</td>
+                            </tr>
+                            {traslado.observaciones && (
+                                <tr>
+                                    <th className="border border-gray-400 px-3 py-2 text-left font-semibold">Observaciones</th>
+                                    <td className="border border-gray-400 px-3 py-2">{traslado.observaciones}</td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* Sección inferior fija: Firmas + Pie de página */}
+                <div className="print-bottom-section">
+                    {/* Sección de Firmas - Centrada y proporcionada */}
+                    <div className="print-signatures">
+                        <div className="print-signatures-container flex justify-around items-end">
+                            {/* Firma - Responsable que Entrega */}
+                            <div className="print-signature-box text-center" style={{ width: '220px' }}>
+                                <div className="border-t border-gray-800 pt-2">
+                                    <p className="font-bold text-sm">
+                                        {traslado.responsable_entrega || ''}
+                                    </p>
+                                    <p className="text-xs text-gray-600 mt-1">
+                                        Responsable que Entrega
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                        {traslado.sede_origen?.nombre}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Firma - Responsable que Recibe */}
+                            <div className="print-signature-box text-center" style={{ width: '220px' }}>
+                                <div className="border-t border-gray-800 pt-2">
+                                    <p className="font-bold text-sm">
+                                        {traslado.responsable_recibe || ''}
+                                    </p>
+                                    <p className="text-xs text-gray-600 mt-1">
+                                        Responsable que Recibe
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                        {traslado.sede_destino?.nombre}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Pie de página */}
+                    <div className="print-footer text-center text-xs text-gray-500 mt-6 pt-3 border-t border-gray-300">
+                        <p>Documento generado el {new Date().toLocaleDateString('es-PE', {
+                            day: '2-digit',
+                            month: 'long',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })}</p>
+                        <p className="mt-1">Sistema de Control de Activos - Constructora</p>
+                    </div>
                 </div>
             </div>
         </AppLayout>

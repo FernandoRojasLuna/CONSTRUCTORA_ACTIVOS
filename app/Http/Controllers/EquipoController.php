@@ -6,6 +6,7 @@ use App\Models\Equipo;
 use App\Models\Sede;
 use App\Exports\EquiposExport;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -99,7 +100,22 @@ class EquipoController extends Controller
             'responsable_actual' => 'nullable|string|max:255',
             'especificaciones' => 'nullable|array',
             'observaciones' => 'nullable|string',
+            'imagenes' => 'nullable|array|max:5',
+            'imagenes.*' => 'image|mimes:jpeg,png,jpg,webp|max:2048', // Max 2MB por imagen
         ]);
+
+        // Procesar imágenes si se subieron
+        $imagenesGuardadas = [];
+        if ($request->hasFile('imagenes')) {
+            foreach ($request->file('imagenes') as $imagen) {
+                // Guardar en storage/app/public/equipos/
+                $path = $imagen->store('equipos', 'public');
+                $imagenesGuardadas[] = $path;
+            }
+        }
+
+        // Agregar imágenes al array validado
+        $validated['imagenes'] = !empty($imagenesGuardadas) ? $imagenesGuardadas : null;
 
         Equipo::create($validated);
 
@@ -136,6 +152,9 @@ class EquipoController extends Controller
     {
         $sedes = Sede::activas()->orderBy('nombre')->get();
 
+        // Agregar URLs de imágenes al equipo
+        $equipo->imagenes_urls = $equipo->imagenes_urls;
+
         return Inertia::render('Equipos/Edit', [
             'equipo' => $equipo,
             'sedes' => $sedes,
@@ -161,7 +180,48 @@ class EquipoController extends Controller
             'responsable_actual' => 'nullable|string|max:255',
             'especificaciones' => 'nullable|array',
             'observaciones' => 'nullable|string',
+            'imagenes_nuevas' => 'nullable|array|max:5',
+            'imagenes_nuevas.*' => 'image|mimes:jpeg,png,jpg,webp|max:2048',
+            'imagenes_existentes' => 'nullable|array',
+            'imagenes_eliminadas' => 'nullable|array',
         ]);
+
+        // Obtener imágenes existentes que se mantienen
+        $imagenesActuales = $equipo->imagenes ?? [];
+        $imagenesExistentes = $request->input('imagenes_existentes', []);
+        $imagenesEliminadas = $request->input('imagenes_eliminadas', []);
+
+        // Eliminar imágenes marcadas para eliminar
+        foreach ($imagenesEliminadas as $imagenPath) {
+            if (Storage::disk('public')->exists($imagenPath)) {
+                Storage::disk('public')->delete($imagenPath);
+            }
+            // Remover de las imágenes actuales
+            $imagenesActuales = array_filter($imagenesActuales, fn($img) => $img !== $imagenPath);
+        }
+
+        // Procesar nuevas imágenes
+        $imagenesNuevas = [];
+        if ($request->hasFile('imagenes_nuevas')) {
+            foreach ($request->file('imagenes_nuevas') as $imagen) {
+                $path = $imagen->store('equipos', 'public');
+                $imagenesNuevas[] = $path;
+            }
+        }
+
+        // Combinar imágenes existentes (que no fueron eliminadas) con las nuevas
+        $todasLasImagenes = array_merge(array_values($imagenesActuales), $imagenesNuevas);
+        
+        // Limitar a máximo 5 imágenes
+        $todasLasImagenes = array_slice($todasLasImagenes, 0, 5);
+
+        // Actualizar el campo de imágenes
+        $validated['imagenes'] = !empty($todasLasImagenes) ? $todasLasImagenes : null;
+
+        // Remover campos que no van a la BD
+        unset($validated['imagenes_nuevas']);
+        unset($validated['imagenes_existentes']);
+        unset($validated['imagenes_eliminadas']);
 
         $equipo->update($validated);
 
@@ -175,6 +235,16 @@ class EquipoController extends Controller
     public function destroy(Equipo $equipo)
     {
         $tipo = $equipo->tipo;
+
+        // Eliminar imágenes asociadas
+        if (!empty($equipo->imagenes)) {
+            foreach ($equipo->imagenes as $imagenPath) {
+                if (Storage::disk('public')->exists($imagenPath)) {
+                    Storage::disk('public')->delete($imagenPath);
+                }
+            }
+        }
+
         $equipo->delete();
 
         return redirect()->route('equipos.index', ['tipo' => $tipo])

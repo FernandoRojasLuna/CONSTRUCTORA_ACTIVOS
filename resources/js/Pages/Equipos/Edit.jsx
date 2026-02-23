@@ -1,11 +1,18 @@
+import { useState, useRef } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import { Button, Card, Input, Select, Textarea } from '@/Components/UI';
-import { ArrowLeftIcon, ComputerDesktopIcon, MapPinIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, ComputerDesktopIcon, MapPinIcon, PhotoIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 export default function EquiposEdit({ equipo, sedes }) {
     // Preparar especificaciones iniciales
     const especificaciones = equipo.especificaciones || {};
+    
+    // Estado para imágenes existentes y nuevas
+    const [imagenesExistentes, setImagenesExistentes] = useState(equipo.imagenes || []);
+    const [imagenesNuevasPreviews, setImagenesNuevasPreviews] = useState([]);
+    const [imagenesEliminadas, setImagenesEliminadas] = useState([]);
+    const fileInputRef = useRef(null);
 
     // Formatear fecha a yyyy-MM-dd si viene en formato ISO
     const formatDate = (dateStr) => {
@@ -46,6 +53,9 @@ export default function EquiposEdit({ equipo, sedes }) {
         accesorios: Array.isArray(especificaciones.accesorios) 
             ? especificaciones.accesorios.join(', ') 
             : (especificaciones.accesorios || ''),
+        imagenes_nuevas: [],
+        imagenes_existentes: equipo.imagenes || [],
+        imagenes_eliminadas: [],
     });
 
     const subtiposComputo = [
@@ -66,6 +76,77 @@ export default function EquiposEdit({ equipo, sedes }) {
         { value: 'baja', label: 'Dado de Baja' },
         { value: 'prestamo', label: 'En Préstamo' },
     ];
+
+    // Calcular total de imágenes (existentes no eliminadas + nuevas)
+    const totalImagenes = imagenesExistentes.length + form.data.imagenes_nuevas.length;
+
+    // Manejar selección de nuevas imágenes
+    const handleImageChange = (e) => {
+        const files = Array.from(e.target.files);
+        const espacioDisponible = 5 - totalImagenes;
+
+        if (files.length > espacioDisponible) {
+            alert(`Solo puedes agregar ${espacioDisponible} imagen(es) más.`);
+            return;
+        }
+
+        // Validar tipos de archivo
+        const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+        const invalidFiles = files.filter(file => !validTypes.includes(file.type));
+        
+        if (invalidFiles.length > 0) {
+            alert('Solo se permiten imágenes en formato JPG, PNG o WebP.');
+            return;
+        }
+
+        // Validar tamaño (máx 2MB)
+        const oversizedFiles = files.filter(file => file.size > 2 * 1024 * 1024);
+        if (oversizedFiles.length > 0) {
+            alert('Cada imagen debe ser menor a 2MB.');
+            return;
+        }
+
+        // Agregar nuevas imágenes
+        const newImagenes = [...form.data.imagenes_nuevas, ...files];
+        form.setData('imagenes_nuevas', newImagenes);
+
+        // Generar previews
+        files.forEach(file => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagenesNuevasPreviews(prev => [...prev, reader.result]);
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Limpiar el input
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
+
+    // Eliminar imagen existente
+    const handleRemoveExistingImage = (imagePath, index) => {
+        const newExistentes = imagenesExistentes.filter((_, i) => i !== index);
+        setImagenesExistentes(newExistentes);
+        
+        const newEliminadas = [...imagenesEliminadas, imagePath];
+        setImagenesEliminadas(newEliminadas);
+        
+        form.setData({
+            ...form.data,
+            imagenes_existentes: newExistentes,
+            imagenes_eliminadas: newEliminadas,
+        });
+    };
+
+    // Eliminar imagen nueva (aún no guardada)
+    const handleRemoveNewImage = (index) => {
+        const newImagenes = form.data.imagenes_nuevas.filter((_, i) => i !== index);
+        const newPreviews = imagenesNuevasPreviews.filter((_, i) => i !== index);
+        form.setData('imagenes_nuevas', newImagenes);
+        setImagenesNuevasPreviews(newPreviews);
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -104,10 +185,15 @@ export default function EquiposEdit({ equipo, sedes }) {
 
         form.transform((data) => ({
             ...data,
+            _method: 'PUT',
             especificaciones: Object.keys(specs).length > 0 ? specs : null,
+            imagenes_existentes: imagenesExistentes,
+            imagenes_eliminadas: imagenesEliminadas,
         }));
         
-        form.put(route('equipos.update', equipo.id));
+        form.post(route('equipos.update', equipo.id), {
+            forceFormData: true,
+        });
     };
 
     const renderEspecificacionesComputo = () => {
@@ -491,6 +577,113 @@ export default function EquiposEdit({ equipo, sedes }) {
                                     placeholder="Notas adicionales sobre el equipo..."
                                     rows={3}
                                 />
+                            </div>
+                        </Card.Body>
+                    </Card>
+
+                    {/* Imágenes del Equipo */}
+                    <Card>
+                        <Card.Header>
+                            <Card.Title>Imágenes del Equipo</Card.Title>
+                            <Card.Description>
+                                Gestiona las fotos del equipo (máx. 5 imágenes, JPG/PNG/WebP, 2MB c/u)
+                            </Card.Description>
+                        </Card.Header>
+                        <Card.Body>
+                            <div className="space-y-4">
+                                {/* Imágenes existentes */}
+                                {imagenesExistentes.length > 0 && (
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-700 mb-2">Imágenes actuales</p>
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                                            {imagenesExistentes.map((imagen, index) => (
+                                                <div key={`existing-${index}`} className="relative group">
+                                                    <img
+                                                        src={`/storage/${imagen}`}
+                                                        alt={`Imagen ${index + 1}`}
+                                                        className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleRemoveExistingImage(imagen, index)}
+                                                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                        title="Eliminar imagen"
+                                                    >
+                                                        <XMarkIcon className="h-4 w-4" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Imágenes nuevas (previews) */}
+                                {imagenesNuevasPreviews.length > 0 && (
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-700 mb-2">Nuevas imágenes</p>
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                                            {imagenesNuevasPreviews.map((preview, index) => (
+                                                <div key={`new-${index}`} className="relative group">
+                                                    <img
+                                                        src={preview}
+                                                        alt={`Nueva imagen ${index + 1}`}
+                                                        className="w-full h-24 object-cover rounded-lg border-2 border-amber-300"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleRemoveNewImage(index)}
+                                                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                        title="Quitar imagen"
+                                                    >
+                                                        <XMarkIcon className="h-4 w-4" />
+                                                    </button>
+                                                    <span className="absolute bottom-1 left-1 bg-amber-500 text-white text-xs px-1 rounded">
+                                                        Nueva
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Botón para agregar imágenes */}
+                                {totalImagenes < 5 && (
+                                    <div
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-amber-400 hover:bg-amber-50 transition-colors"
+                                    >
+                                        <PhotoIcon className="h-10 w-10 text-gray-400 mx-auto mb-2" />
+                                        <p className="text-sm text-gray-600">
+                                            Haz clic para agregar más imágenes
+                                        </p>
+                                        <p className="text-xs text-gray-400 mt-1">
+                                            {5 - totalImagenes} imagen(es) disponible(s)
+                                        </p>
+                                    </div>
+                                )}
+
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="image/jpeg,image/png,image/jpg,image/webp"
+                                    multiple
+                                    onChange={handleImageChange}
+                                    className="hidden"
+                                />
+
+                                {form.errors.imagenes_nuevas && (
+                                    <p className="text-sm text-red-600">{form.errors.imagenes_nuevas}</p>
+                                )}
+
+                                {/* Barra de progreso */}
+                                {form.progress && (
+                                    <div className="w-full bg-gray-200 rounded-full h-2">
+                                        <div
+                                            className="bg-amber-500 h-2 rounded-full transition-all"
+                                            style={{ width: `${form.progress.percentage}%` }}
+                                        />
+                                    </div>
+                                )}
                             </div>
                         </Card.Body>
                     </Card>

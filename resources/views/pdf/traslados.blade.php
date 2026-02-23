@@ -5,6 +5,10 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Historial de Traslados</title>
     <style>
+        /* Configuramos la página sin márgenes físicos para controlar todo por CSS */
+        @page {
+            margin: 0;
+        }
         * {
             margin: 0;
             padding: 0;
@@ -14,6 +18,8 @@
             font-family: 'DejaVu Sans', sans-serif;
             font-size: 10px;
             color: #333;
+            /* AQUÍ ESTÁ EL TRUCO: Padding para simular los márgenes de la página */
+            padding: 20mm 15mm;
         }
         .header {
             text-align: center;
@@ -49,6 +55,8 @@
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
+            /* Evita que las filas se corten feo entre páginas */
+            page-break-inside: auto;
         }
         th {
             background-color: #D97706;
@@ -61,14 +69,20 @@
         td {
             padding: 6px 5px;
             border-bottom: 1px solid #ddd;
-            font-size: 9px;
+            font-size: 8px; /* Reducido ligeramente para que quepan más columnas */
         }
         tr:nth-child(even) {
             background-color: #f9f9f9;
         }
+        /* Evita que una fila se divida en dos páginas */
+        tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+        }
         .arrow {
             color: #D97706;
             font-weight: bold;
+            text-align: center;
         }
         .footer {
             text-align: center;
@@ -87,7 +101,7 @@
     </div>
 
     <div class="meta">
-        <strong>Fecha de generación:</strong> {{ $fecha }} |
+        <strong>Fecha de generación:</strong> {{ $fecha }} | 
         <strong>Total de traslados:</strong> {{ $traslados->count() }}
     </div>
 
@@ -106,16 +120,15 @@
     <table>
         <thead>
             <tr>
-                <th>Fecha</th>
-                <th>Equipo</th>
-                <th>Marca/Modelo</th>
-                <th>Origen</th>
-                <th></th>
-                <th>Destino</th>
-                <th>Motivo</th>
-                <th>Resp. Entrega</th>
-                <th>Resp. Recibe</th>
-                <th>Solicitado Por</th>
+                <th style="width: 10%">Fecha</th>
+                <th style="width: 12%">Equipo</th>
+                <th style="width: 15%">Marca/Modelo</th>
+                <th style="width: 12%">Origen</th>
+                <th style="width: 3%"></th>
+                <th style="width: 12%">Destino</th>
+                <th style="width: 15%">Motivo</th>
+                <th style="width: 10%">Resp. Recibe</th>
+                <th style="width: 11%">Solicitado Por</th>
             </tr>
         </thead>
         <tbody>
@@ -127,14 +140,13 @@
                 <td>{{ $traslado->sedeOrigen->nombre ?? 'N/A' }}</td>
                 <td class="arrow">→</td>
                 <td>{{ $traslado->sedeDestino->nombre ?? 'N/A' }}</td>
-                <td>{{ Str::limit($traslado->motivo, 25) }}</td>
-                <td>{{ $traslado->responsable_entrega ?? 'N/A' }}</td>
+                <td>{{ \Illuminate\Support\Str::limit($traslado->motivo, 25) }}</td>
                 <td>{{ $traslado->responsable_recibe ?? 'N/A' }}</td>
                 <td>{{ $traslado->usuario->name ?? 'N/A' }}</td>
             </tr>
             @empty
             <tr>
-                <td colspan="10" style="text-align: center; padding: 20px;">
+                <td colspan="9" style="text-align: center; padding: 20px;">
                     No se encontraron traslados con los filtros aplicados.
                 </td>
             </tr>
